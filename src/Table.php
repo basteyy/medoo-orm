@@ -7,6 +7,7 @@ namespace basteyy\MedooOrm;
 use basteyy\MedooOrm\Helper\Singleton;
 use basteyy\MinimalHashWrapper\MinimalHashWrapper;
 use DateTime;
+use DI\Definition\Exception\InvalidDefinition;
 use Exception;
 use Psr\Container\ContainerInterface;
 use Medoo\Medoo;
@@ -49,18 +50,27 @@ class Table
         }
 
         // Recieved connection data as array
-        if(is_array($connection)) {
+        if (is_array($connection)) {
 
             $this->db = Singleton::getMedoo($connection);
 
-        } elseif($container instanceof Medoo) {
+        } elseif ($connection instanceof Medoo) {
             $this->db = $container;
         } elseif ($connection instanceof ContainerInterface) {
 
-            if($connection->has(Medoo::class)) {
-                $this->db = $connection->get(Medoo::class);
-            } elseif($connection->has('database')) {
+
+            if ($connection->has('database')) {
                 $this->db = $connection->get('database');
+            } elseif ($connection->has('DatabaseConnection')) {
+                $this->db = $connection->get('DatabaseConnection');
+            } elseif ($connection->has('DB')) {
+                $this->db = $connection->get('DB');
+            } elseif ($connection->has(Medoo::class)) {
+                try {
+                    $this->db = $connection->get(Medoo::class);
+                } catch (InvalidDefinition) {
+                    throw new \Exception('Check your definition of the medoo instance!');
+                }
             } else {
                 throw new Exception('Make sure that you define the Medoo-Connection in the Dependecy Injector somewhere before calling MedooOrm');
             }
@@ -459,15 +469,6 @@ class Table
         return $entity;
     }
 
-    /**
-     * Return the Name of the table
-     * @return string
-     */
-    public function getTableName(): string
-    {
-        return $this->table_name;
-    }
-
     public function delete(Entity $entity, bool $delete_associations = false): bool|PDOStatement
     {
         if ($delete_associations) {
@@ -507,7 +508,7 @@ class Table
                     || ($entity->__orig[$column] !== $entity->{$column})
                 ) {
                     if ($entity->{$column} instanceof DateTime) {
-                        /** @var DateTime $entity->{$column} */
+                        /** @var DateTime $entity- >{$column} */
                         $data[$column] = ($entity->{$column})->format('Y-m-d H:i:s');
                     } else {
                         $data[$column] = $entity->{$column};
@@ -547,7 +548,7 @@ class Table
 
             $_finalData = [];
 
-            if(!isset($data) || count($data) < 1 ) {
+            if (!isset($data) || count($data) < 1) {
                 // No data to save!
                 return true;
             }
@@ -576,6 +577,15 @@ class Table
     public function insert(array $data): ?PDOStatement
     {
         return $this->db->insert($this->getTableName(), $data);
+    }
+
+    /**
+     * Return the Name of the table
+     * @return string
+     */
+    public function getTableName(): string
+    {
+        return $this->table_name;
     }
 
 }
