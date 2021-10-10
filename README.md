@@ -14,9 +14,47 @@ composer require basteyy/medoo-orm
 
 ## Config
 
+
+
+## Usage
+
+See the examples for usecases / examples. But at the glance you need a class which extends the orm table class, define the id column and table-name and thats it.
+
 ## Examples
 
-Comming soon (hopefully)
+### Users Table Example
+For example you have a users table called `users` like the following:
+
+```
+id | username | password | email | last_login
+```
+
+#### The UsersTable-Class
+
+First you create the Table for that (database-)table:
+
+```php
+// File: UsersTable.php
+
+// Define the class name and extend it with the Table Class
+class UsersTable extends basteyy\MedooOrm\Table {
+
+    // Abstract the database table
+    
+    //  the name of the database table (in this case users)   
+    protected string $table_name = 'users';
+    
+    // define the id column (in this case id)
+    protected string $id_column = 'id';
+}
+```
+
+##### Select a user
+```php
+$
+```
+
+#### The UsersEntity-Class
 
 ## License
 

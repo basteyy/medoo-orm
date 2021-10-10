@@ -1,0 +1,12 @@
+{
+    "name": "basteyy/medoo-orm",
+    "autoload": {
+        "psr-4": {
+            "basteyy\\MedooOrm\\": "src"
+        }
+    },
+    "require": {
+        "catfan/medoo": "^2.1",
+        "basteyy/minimal-hash-wrapper": "^1.0"
+    }
+}
