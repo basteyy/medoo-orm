@@ -1,5 +1,18 @@
 {
     "name": "basteyy/medoo-orm",
+    "type": "library",
+    "description": "An ORM Mapper for using Medoo as an Object-ORM Tool",
+    "keywords": ["medoo", "php", "orm"],
+    "homepage": "https://github.com/basteyy/medoo-orm",
+    "license": "CC BY-NC-SA 4.0",
+    "authors": [
+        {
+            "name": "Sebastian Eiweleit",
+            "email": "b@steyy.de",
+            "homepage": "https://eiweleit.de",
+            "role": "Developer"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "basteyy\\MedooOrm\\": "src"
