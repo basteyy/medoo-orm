@@ -4,7 +4,7 @@
     "description": "An ORM Mapper for using Medoo as an Object-ORM Tool",
     "keywords": ["medoo", "php", "orm"],
     "homepage": "https://github.com/basteyy/medoo-orm",
-    "license": "CC BY-NC-SA 4.0",
+    "license": "CC-BY-NC-SA-4.0",
     "authors": [
         {
             "name": "Sebastian Eiweleit",
