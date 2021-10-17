@@ -97,6 +97,7 @@ class Entity
         return isset($this->typeCast[$key]) ? match ($this->typeCast[$key]) {
             self::TYPE_CAST_INT => (int) $value,
             self::TYPE_CAST_BOOL => (bool) $value,
+            self::TYPE_CAST_STRING => (string) $value,
             self::TYPE_CAST_SLUG => $this->_slugify($value),
             self::TYPE_CAST_DATETIME => $value instanceof \DateTime ? $value : ($value === null ? null : new \DateTime($value)),
             self::TYPE_CAST_DANGEROUS_RAW => $value,

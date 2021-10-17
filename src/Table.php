@@ -13,7 +13,7 @@ use Psr\Container\ContainerInterface;
 use Medoo\Medoo;
 use PDOStatement;
 
-class Table
+class Table implements TableInterface
 {
     /** @var string The name of the database table */
     protected string $table_name;
@@ -35,10 +35,8 @@ class Table
     /** @var bool Disable joins for the next query */
     private bool $noJoin = false;
 
-    /**
-     * @param ContainerInterface $container
-     * @throws Exception
-     */
+
+    /** @inheritDoc */
     public function __construct(ContainerInterface|Medoo|array $connection)
     {
         if (!isset($this->table_name)) {
@@ -80,22 +78,16 @@ class Table
         }
     }
 
-    /**
-     * Disable the join for the next query
-     * @return $this
-     */
+
+    /** @inheritDoc */
     public function noJoin(): self
     {
         $this->noJoin = true;
         return $this;
     }
 
-    /**
-     * @param array $where
-     * @param bool $delete_associations
-     * @return int
-     * @throws Exception
-     */
+
+    /** @inheritDoc */
     public function deleteWhere(array $where = [], bool $delete_associations = false): int
     {
         if ($delete_associations) {
@@ -108,6 +100,8 @@ class Table
 
     }
 
+
+    /** @inheritDoc */
     public function getAll(array $where = []): array
     {
 
@@ -159,12 +153,8 @@ class Table
         return $entities;
     }
 
-    /**
-     * @param string $table_name
-     * @return array
-     * @throws Exception
-     * @todo Implement caching
-     */
+
+    /** @inheritDoc */
     protected function getColumns(string $table_name, bool $skip_alias = false): array
     {
 
@@ -191,13 +181,8 @@ class Table
         return $columns;
     }
 
-    /**
-     * Create the entity
-     * @param string $entityClassName
-     * @param array $entityBaseData
-     * @param string|null $entityIdColumn
-     * @return mixed|
-     */
+
+    /** @inheritDoc */
     protected function createEntity(string $entityClassName, array $entityBaseData = [], string $entityIdColumn = null): mixed
     {
         if (!$entityIdColumn) {
@@ -211,12 +196,8 @@ class Table
         return new $entityClassName($entityBaseData, $entityIdColumn);
     }
 
-    /**
-     * Create the entity classname, based on the table name.
-     * @param string|null $classname
-     * @return string
-     * @throws Exception
-     */
+
+    /** @inheritDoc */
     private function getEntityName(string $classname = null): string
     {
 
@@ -246,41 +227,41 @@ class Table
             return substr($classname, 0, strrpos($classname, '\\')) . '\Entity';
         }
 
-
         if ($this->native_entities && class_exists(substr($class_name, 0, strrpos($class_name, '\\')) . '\Entity')) {
             return substr($class_name, 0, strrpos($class_name, '\\')) . '\Entity';
+        }
+
+        if($this->native_entities) {
+            return Entity::class;
         }
 
         throw new Exception(sprintf('Unable to locate entity class %s(s)', $classname));
     }
 
-    /**
-     * Return the id of the table
-     * @return string
-     */
+
+    /** @inheritDoc */
     public function getIdColumn(): string
     {
         return $this->id_column;
     }
 
+
+    /** @inheritDoc */
     public function noLog(): self
     {
         $this->log = false;
         return $this;
     }
 
+
+    /** @inheritDoc */
     public function Log(): self
     {
         $this->log = true;
         return $this;
     }
 
-    /**
-     * Get entity by id
-     * @param int $id
-     * @return Entity|false
-     * @throws Exception
-     */
+    /** @inheritDoc */
     public function getById(int $id): Entity|false
     {
         if (!isset($this->id_column)) {
@@ -290,12 +271,7 @@ class Table
         return $this->getBySingleColumn($this->id_column, $id);
     }
 
-    /**
-     * @param string $column
-     * @param int|string $value
-     * @param array $selectedColumns
-     * @return Entity|false
-     */
+    /** @inheritDoc */
     public function getBySingleColumn(string $column, int|string $value, array $selectedColumns = []): Entity|false
     {
 
@@ -358,6 +334,7 @@ class Table
 
     }
 
+    /** @inheritDoc */
     public function where(array $where, array $selectedColumns = [])
     {
         if (isset($this->table_join) && !$this->noJoin) {
@@ -451,6 +428,7 @@ class Table
         return $fields;
     }
 
+    /** @inheritDoc */
     public function new(array $data = []): Entity
     {
         if (!isset($data['__new'])) {
@@ -460,6 +438,7 @@ class Table
         return $this->createEntity($this->getEntityName(), $data, $this->getIdColumn());
     }
 
+    /** @inheritDoc */
     public function patch(Entity $entity, array $data = []): Entity
     {
         foreach ($data as $key => $value) {
@@ -469,6 +448,7 @@ class Table
         return $entity;
     }
 
+    /** @inheritDoc */
     public function delete(Entity $entity, bool $delete_associations = false): bool|PDOStatement
     {
         if ($delete_associations) {
@@ -490,9 +470,7 @@ class Table
         return true;
     }
 
-    /**
-     * @throws Exception
-     */
+    /** @inheritDoc */
     public function save(Entity $entity, bool $save_associations = false): bool|PDOStatement
     {
         $databaseColumns = $this->getColumns($this->table_name, true);
@@ -574,15 +552,13 @@ class Table
 
     }
 
+    /** @inheritDoc */
     public function insert(array $data): ?PDOStatement
     {
         return $this->db->insert($this->getTableName(), $data);
     }
 
-    /**
-     * Return the Name of the table
-     * @return string
-     */
+    /** @inheritDoc */
     public function getTableName(): string
     {
         return $this->table_name;
