@@ -1,8 +1,16 @@
 <?php
+/**
+ * @version 1.0.0
+ * @package https://github.com/basteyy/medoo-orm
+ * @author Sebastian Eiweleit <sebastian@eiweleit.de>
+ * @license Attribution-NonCommercial-ShareAlike 4.0 International
+ */
+
 declare(strict_types=1);
 
 namespace basteyy\MedooOrm\Helper;
 
+use Exception;
 use Medoo\Medoo;
 
 /**
@@ -15,39 +23,49 @@ final class Singleton
 
     /**
      * Get the medoo instance (or create it, if missing)
-     * @param array $config
-     * @return Medoo|null
-     * @throws \Exception
+     * @param array|null $config
+     * @return Medoo
+     * @throws Exception
      */
-    public static function getMedoo(array $config) : Medoo {
+    public static function getMedoo(?array $config = []): Medoo
+    {
 
-        if(self::$medoo === null) {
+        if (self::$medoo === null) {
+
+            if (!$config) {
+                throw new Exception('No config data provided.');
+            }
 
             // Required parameter
-            foreach(['database', 'host', 'username', 'password'] as $setting) {
-                if(!isset($config[$setting])) {
-                    throw new \Exception(sprintf('Make sure you pass a config array which contains the %s!', ));
+            foreach (['database', 'host', 'username', 'password'] as $setting) {
+                if (!isset($config[$setting])) {
+                    throw new Exception(sprintf('Make sure you pass a config array which contains the %s!', $setting));
                 }
             }
 
             // Add default connection type
-            if(!isset($config['type'])) {
+            if (!isset($config['type'])) {
                 $config['type'] = 'mysql';
             }
 
             // Add default charset
-            if(!isset($config['charset'])) {
+            if (!isset($config['charset'])) {
                 $config['charset'] = 'utf8mb4';
             }
 
             // Add default port
-            if(!isset($config['port'])) {
+            if (!isset($config['port'])) {
                 $config['port'] = 3306;
             }
 
-            self::$medoo = new Medoo($config);
+            self::setMedoo(new Medoo($config));
         }
 
         return self::$medoo;
+    }
+
+    public static function setMedoo(Medoo $medoo): void
+    {
+        self::$medoo = $medoo;
     }
 }
