@@ -125,7 +125,7 @@ trait CreateEntityTrait
                         break;
 
                     case 'DateTime':
-                        $this->{$property->getName()} = new DateTime($entityData[$property->getName()]);
+                        $this->{$property->getName()} = (new DateTime($entityData[$property->getName()]))->setTimezone(new \DateTimeZone(date_default_timezone_get()));
                         break;
 
                     default:

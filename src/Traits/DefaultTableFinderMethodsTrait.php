@@ -36,8 +36,8 @@ trait DefaultTableFinderMethodsTrait
             $selectedColumns = $this->getColumns($this->table_name, true);
         }
 
-        foreach($where as $field => $value) {
-            if (!str_contains($field, '.' )) {
+        foreach ($where as $field => $value) {
+            if (!str_contains($field, '.')) {
                 $where[$this->table_name . '.' . $field] = $value;
                 unset($where[$field]);
             }
@@ -94,10 +94,86 @@ trait DefaultTableFinderMethodsTrait
         ?array     $join = null
     ): array|null
     {
+        return $this->getAllBy([$column => $value], $selectedColumns, $join);
+    }
 
-        $build = $this->buildJoinWhereQueryArgument([$column => $value], $selectedColumns, $join);
+    /**
+     * Return one (the first) entry based on one column selection
+     * @param string $column
+     * @param int|string $value
+     * @param array|null $selectedColumns
+     * @param array|null $join
+     * @return EntityInterface|null
+     * @throws Exception
+     */
+    public function getOneBySingleColumn(
+        string     $column,
+        int|string $value,
+        ?array     $selectedColumns = null,
+        ?array     $join = null
+    ): EntityInterface|null
+    {
+        return $this->getOnyBy([$column => $value], $selectedColumns, $join);
+    }
 
-        if($build['join'] && $build['where']) {
+    /**
+     * @param array $where
+     * @param array|null $selectedColumns
+     * @param array|null $join
+     * @return EntityInterface|null
+     * @throws Exception
+     */
+    public function getOnyBy(
+        array $where,
+        ?array     $selectedColumns = null,
+        ?array     $join = null
+    ): EntityInterface|null
+    {
+        $build = $this->buildJoinWhereQueryArgument($where, $selectedColumns, $join);
+
+        if ($build['join'] && $build['where']) {
+            $result = $this->medoo->get(
+                $this->table_name,
+                $build['join'],
+                $build['column'],
+                $build['where']
+            );
+        } elseif ($build['where'] && !$build['join']) {
+            $result = $this->medoo->get(
+                $this->table_name,
+                $build['column'],
+                $build['where']
+            );
+        } elseif (!$build['where'] && $build['join']) {
+            $result = $this->medoo->get(
+                $this->table_name,
+                $build['join'],
+                $build['column']
+            );
+        }
+
+        $this->_log($this->medoo->log());
+
+        return $result ? $this->entity($result) : null;
+    }
+
+    /**
+     * Return all elements based on a complex where array
+     * @param array $where
+     * @param array|null $selectedColumns
+     * @param array|null $join
+     * @return EntityInterface|null
+     * @throws Exception
+     */
+    public function getAllBy(
+        array  $where,
+        ?array $selectedColumns = null,
+        ?array $join = null
+    ): array|null
+    {
+        $build = $this->buildJoinWhereQueryArgument($where, $selectedColumns, $join);
+
+        if ($build['join'] && $build['where']) {
             $result = $this->medoo->select(
                 $this->table_name,
                 $build['join'],
@@ -110,7 +186,7 @@ trait DefaultTableFinderMethodsTrait
                 $build['column'],
                 $build['where']
             );
-        } elseif(!$build['where'] && $build['join']) {
+        } elseif (!$build['where'] && $build['join']) {
             $result = $this->medoo->select(
                 $this->table_name,
                 $build['join'],
@@ -134,50 +210,6 @@ trait DefaultTableFinderMethodsTrait
     }
 
     /**
-     * Return one (the first) entry based on one column selection
-     * @param string $column
-     * @param int|string $value
-     * @param array|null $selectedColumns
-     * @param array|null $join
-     * @return EntityInterface|null
-     * @throws Exception
-     */
-    public function getOneBySingleColumn(
-        string     $column,
-        int|string $value,
-        ?array     $selectedColumns = null,
-        ?array     $join = null
-    ): EntityInterface|null
-    {
-        $build = $this->buildJoinWhereQueryArgument([$column => $value], $selectedColumns, $join);
-
-        if($build['join'] && $build['where']) {
-            $result = $this->medoo->get(
-                $this->table_name,
-                $build['join'],
-                $build['column'],
-                $build['where']
-            );
-        } elseif ($build['where'] && !$build['join']) {
-            $result = $this->medoo->get(
-                $this->table_name,
-                $build['column'],
-                $build['where']
-            );
-        } elseif(!$build['where'] && $build['join']) {
-            $result = $this->medoo->get(
-                $this->table_name,
-                $build['join'],
-                $build['column']
-            );
-        }
-
-        $this->_log($this->medoo->log());
-
-        return $result ? $this->entity($result) : null;
-    }
-
-    /**
      * Get one entry by its id column
      * @param int|string $id
      * @param array|null $selectedColumns
@@ -198,7 +230,6 @@ trait DefaultTableFinderMethodsTrait
             $join
         );
     }
-
 
     /**
      * Create an entity object based on the entityData
@@ -366,7 +397,7 @@ trait DefaultTableFinderMethodsTrait
         }
 
         // Use Cache
-        if(APCU && apcu_exists('cols' . $table_name ) ) {
+        if (APCU && apcu_exists('cols' . $table_name)) {
             return apcu_fetch('cols' . $table_name);
         }
 
@@ -385,7 +416,7 @@ trait DefaultTableFinderMethodsTrait
             }
         }
 
-        if(APCU) {
+        if (APCU) {
             apcu_add('cols' . $table_name, $columns, APCU_MEDIUM_TTL);
         }
 

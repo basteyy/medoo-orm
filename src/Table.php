@@ -17,6 +17,8 @@ use basteyy\MedooOrm\Interfaces\TableInterface;
 use basteyy\MedooOrm\Traits\DefaultTableFinderMethodsTrait;
 use basteyy\MedooOrm\Traits\FindClassNameTrait;
 use basteyy\MedooOrm\Traits\GetModelTrait;
+use DateTime;
+use DateTimeZone;
 use Exception;
 use Medoo\Medoo;
 use Psr\Container\ContainerExceptionInterface;
@@ -49,13 +51,13 @@ class Table implements TableInterface
      */
     public function __construct(ContainerInterface|Medoo|array $connection)
     {
-        if(!defined('DEBUG')) {
+        if (!defined('DEBUG')) {
             define('DEBUG', false);
         }
 
         /** APCu Caching? */
         if (!defined('APCU')) {
-            define('APCU', extension_loaded('apcu'));
+            define('APCU', function_exists('apcu_enabled') && apcu_enabled());
         }
 
         if (!defined('APCU_REQ_TTL')) {
@@ -145,7 +147,23 @@ class Table implements TableInterface
         $entity_saving_data = [];
 
         foreach ($entity_reflection as $property) {
-            $entity_saving_data[$property->getName()] = $entity->{$property->getName()} ?? null;
+
+            $value = $entity->{$property->getName()} ?? null;
+
+            /**
+             * Medoo isn't supporting datetime objects for now (https://github.com/catfan/Medoo/pull/1050).
+             * So we change the object into string for saving
+             */
+            if ($value instanceof DateTime) {
+                /** @var DateTime $value */
+                $value = $value
+                    ->setTimezone(new DateTimeZone('UTC'))
+                    ->format('Y-m-d H:m:s');
+                // Timezone and milliseconds (Y-m-d h:m:s.U e) are not supported by now by mysql/mariadb
+                // (https://dev.mysql.com/doc/refman/8.0/en/datetime.html)
+            }
+
+            $entity_saving_data[$property->getName()] = $value;
 
             if ($property->getName() === $this->id_column) {
                 $id_column_type = $property;
@@ -157,12 +175,9 @@ class Table implements TableInterface
             unset($entity_saving_data[$this->id_column]);
             $this->medoo->insert($this->table_name, $entity_saving_data);
         } else {
-
-
             $this->medoo->update($this->table_name, $entity_saving_data, [
                 $this->id_column => $entity->{$this->id_column}
             ]);
-            die();
         }
 
         if ($id_column_type->hasType() && $id_column_type->getType()->getName() === 'int') {
@@ -173,6 +188,12 @@ class Table implements TableInterface
         }
 
         return true;
+    }
+
+    public function deleteById(EntityInterface $entity) : bool {
+        return $this->medoo->delete($this->table_name, [
+            $this->id_column => $entity->{$this->id_column}
+        ])->rowCount() > 0;
     }
 
 
