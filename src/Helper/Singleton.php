@@ -66,6 +66,8 @@ final class Singleton
 
     public static function setMedoo(Medoo $medoo): void
     {
-        self::$medoo = $medoo;
+        if(!isset(self::$medoo)) {
+            self::$medoo = $medoo;
+        }
     }
 }

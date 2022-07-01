@@ -10,7 +10,9 @@ declare(strict_types=1);
 
 namespace basteyy\MedooOrm\Traits;
 
+use basteyy\MedooOrm\Exceptions\InvalidDefinitionException;
 use basteyy\MedooOrm\Helper\ReflectionFactory;
+use basteyy\MedooOrm\Interfaces\EntityInterface;
 use DateTime;
 use Exception;
 use ReflectionException;
@@ -74,11 +76,14 @@ trait CreateEntityTrait
             // Try to cast the properties
             $property_casting = $property->hasType() ? $property->getType()->getName() : 'string';
 
+            if (!isset($entityData[$property->getName()]) && is_string($property_casting) && class_exists($property_casting) ) {
+                $this->{$property->getName()} = $this->joinTableVarNameMutation($property->getName(), $entityData);
+            }
+
             if (isset($entityData[$property->getName()])) {
 
                 switch ($property_casting) {
-
-                    case 'mixed':
+                    case 'mixed' :
                         $this->{$property->getName()} = $entityData[$property->getName()];
                         break;
 
@@ -134,10 +139,58 @@ trait CreateEntityTrait
                         break;
 
                     default:
-                        throw new Exception(sprintf('Unable to cast property of %s as %s', __CLASS__, $property->getType()->getName()));
+                        if(is_string($property_casting) && class_exists($property_casting) ) {
+                            $this->{$property->getName()} = $entityData[$property->getName()];
+                        } else {
+                            throw new Exception(sprintf('Unable to cast property of %s as %s', __CLASS__, $property->getType()->getName()));
+                        }
                 }
 
             }
         }
     }
+
+
+    /**
+     * Custom property name mutation helper
+     * @param string $table_basename
+     * @param array $entityData
+     * @param $l
+     * @return string
+     */
+    private function joinTableVarNameMutation(string $table_basename, array $entityData, $l = true): EntityInterface
+    {
+
+        if (isset($entityData[lcfirst($table_basename)])) {
+            return $entityData[lcfirst($table_basename)];
+        }
+
+        if (isset($entityData[ucfirst($table_basename)])) {
+            return $entityData[ucfirst($table_basename)];
+        }
+
+        if (isset($entityData[strtolower($table_basename)])) {
+            return $entityData[strtolower($table_basename)];
+        }
+
+        if (isset($entityData[strtoupper($table_basename)])) {
+            return $entityData[strtoupper($table_basename)];
+        }
+
+        if($l && !str_ends_with($table_basename, 's')) {
+            return $this->joinTableVarNameMutation($table_basename . 's', $entityData, false);
+        }
+
+        if($l && str_ends_with($table_basename, 's')) {
+            return $this->joinTableVarNameMutation(substr($table_basename, 0, -1), $entityData, false);
+        }
+
+        #if($l && !isset($entityData[$table_basename])) {
+            throw new InvalidDefinitionException(sprintf('Joining failed because the %s is not defined in the data set for the entity', $table_basename));
+        #}
+
+       # return $table_basename;
+    }
+
+
 }

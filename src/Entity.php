@@ -15,6 +15,7 @@ use basteyy\MedooOrm\Interfaces\EntityInterface;
 use basteyy\MedooOrm\Traits\CreateEntityTrait;
 use basteyy\MedooOrm\Traits\FindClassNameTrait;
 use basteyy\MedooOrm\Traits\GetModelTrait;
+use basteyy\MedooOrm\Traits\LoggingTrait;
 use basteyy\MedooOrm\Traits\RawGetterSetterTrait;
 use basteyy\MedooOrm\Traits\StringMethodsTrait;
 use Exception;
@@ -24,6 +25,8 @@ use ReflectionException;
 class Entity implements EntityInterface
 {
     use FindClassNameTrait, CreateEntityTrait, RawGetterSetterTrait, StringMethodsTrait, GetModelTrait;
+
+    use LoggingTrait;
 
     private string $id_column;
 

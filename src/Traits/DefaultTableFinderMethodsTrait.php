@@ -11,6 +11,9 @@ declare(strict_types=1);
 namespace basteyy\MedooOrm\Traits;
 
 use basteyy\MedooOrm\Entity;
+use basteyy\MedooOrm\Exceptions\InvalidDefinitionException;
+use basteyy\MedooOrm\Exceptions\NotImplementedException;
+use basteyy\MedooOrm\Helper\Singleton;
 use basteyy\MedooOrm\Interfaces\EntityInterface;
 use Exception;
 use JetBrains\PhpStorm\ArrayShape;
@@ -233,9 +236,48 @@ trait DefaultTableFinderMethodsTrait
 
     /**
      * Create an entity object based on the entityData
+     * @throws NotImplementedException
      */
     private function entity(array $entityData = []): EntityInterface|array
     {
+        /** Join the current entry to a table? */
+        if(isset($this->table_join)) {
+            foreach($this->table_join as $table => $conditions) {
+                // $table is a string of a fqn of an entity
+
+                if(class_exists($table)) {
+                    // EntityClass
+
+                    $table_basename = basename(str_replace('\\', DIRECTORY_SEPARATOR, $table));
+
+                    if(str_ends_with($table_basename, 'Entity')) {
+                        throw new InvalidDefinitionException(sprintf('You cant join a entity on a table. Change %s against the table-class', $table));
+                    }
+
+                    if(str_ends_with($table_basename, 'Table')) {
+                        $table_basename = substr($table_basename, 0, -5);
+                    }
+
+                    // Data exists?
+                    if(!isset($entityData[array_key_first($conditions)])) {
+                        throw new Exception(sprintf('Cant find data for the join condition on %s-Table "%s"', $this->current_class_name, $conditions[0]));
+                    }
+
+                    $column = array_key_last($conditions);
+                    $value = $entityData[array_key_first($conditions)];
+
+                    $entityData[$table_basename] = (new $table(Singleton::getMedoo()))->getOneBySingleColumn($column, $value);
+
+
+                } elseif (is_string($table)) {
+                    // String means table from database
+                    throw new NotImplementedException(sprintf('Classless-auto-joins are not supported. Join "%s" manually', $table));
+                }
+
+
+            }
+        }
+
         return new ((string)$this->getEntityName($this->current_class_name))($entityData, $this->id_column);
     }
 
@@ -327,60 +369,9 @@ trait DefaultTableFinderMethodsTrait
         }
 
         return (object)$data;
-
-        if ($this->noJoin) {
-            $this->noJoin = false;
-        }
-
-        // @todo: implement logging $this->_log($this->db->log());
-
-        if (!isset($data[0])) {
-            return false;
-        }
-
-        // @todo: implement logging $this->_log(json_encode($data[0]));
-
-
-        $data[0][$this->id_column] = (int)$data[0][$this->id_column];
-
-
-        return $this->createEntity($this->getEntityName(), $data[0], $this->getIdColumn()); // new ($this->getEntityName())($data[0], $this->getIdColumn());
-
     }
 
 
-    /**
-     * Debug Wrapper
-     * @param $data
-     * @return void
-     */
-    protected function _log($data)
-    {
-        if (defined('DEBUG') && true === DEBUG) {
-            $log_folder = ROOT . '/v2/logs/database/';
-            $log_file = $log_folder . date('d.m.y') . '.log';
-
-            if (!is_dir($log_folder)) {
-                mkdir($log_folder, 0777, true);
-            }
-
-            $content = '';
-
-            if (is_array($data)) {
-                foreach ($data as $d) {
-                    $content = date('Y-m-d H:i:s' . substr((string)microtime(), 1, 8) . '') . "\t" . $d . "\n" . $content;
-                }
-            } else {
-                $content = date('Y-m-d H:i:s' . substr((string)microtime(), 1, 8) . '') . "\t" . $data . "\n";
-            }
-
-            if (file_exists($log_file)) {
-                $old_content = file_get_contents($log_file);
-            }
-
-            file_put_contents($log_file, $content . ($old_content ?? ''));
-        }
-    }
 
     /**
      * Get all columns from a table. Function is using apcu cache if enabled
@@ -424,9 +415,13 @@ trait DefaultTableFinderMethodsTrait
     }
 
 
-    public function allById(string|array $ids)
+    /**
+     * Return all rows of the current table by id `$ids` as objects in an array
+     * @param string|array $ids
+     * @return array
+     */
+    public function allById(string|array $ids): array
     {
-
         $results = $this->medoo->select($this->table_name, '*', [
             $this->id_column => $ids
         ]);
@@ -441,6 +436,10 @@ trait DefaultTableFinderMethodsTrait
 
     }
 
+    /**
+     * Return all rows if the current table
+     * @return array
+     */
     public function getAll(): array
     {
         $results = $this->medoo->select($this->table_name, '*');

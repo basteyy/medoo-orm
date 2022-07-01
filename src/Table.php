@@ -17,6 +17,7 @@ use basteyy\MedooOrm\Interfaces\TableInterface;
 use basteyy\MedooOrm\Traits\DefaultTableFinderMethodsTrait;
 use basteyy\MedooOrm\Traits\FindClassNameTrait;
 use basteyy\MedooOrm\Traits\GetModelTrait;
+use basteyy\MedooOrm\Traits\LoggingTrait;
 use DateTime;
 use DateTimeZone;
 use Exception;
@@ -43,6 +44,8 @@ class Table implements TableInterface
     private string $current_class_name;
 
     use DefaultTableFinderMethodsTrait, FindClassNameTrait, GetModelTrait;
+
+    use LoggingTrait;
 
     /**
      * @throws ContainerExceptionInterface
@@ -114,7 +117,10 @@ class Table implements TableInterface
     }
 
 
-    /** @inheritDoc */
+    /**
+     * Return the current table name
+     * @return string
+     */
     public function getTableName(): string
     {
         return $this->table_name;
@@ -137,6 +143,7 @@ class Table implements TableInterface
 
 
     /**
+     * Save an existing entity or create a new entity
      * @throws \ReflectionException
      */
     public function save(EntityInterface $entity): bool
@@ -190,6 +197,11 @@ class Table implements TableInterface
         return true;
     }
 
+    /**
+     * Delete an entity/row by its id
+     * @param EntityInterface $entity
+     * @return bool
+     */
     public function deleteById(EntityInterface $entity) : bool {
         return $this->medoo->delete($this->table_name, [
             $this->id_column => $entity->{$this->id_column}
