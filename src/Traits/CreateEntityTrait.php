@@ -77,6 +77,11 @@ trait CreateEntityTrait
             if (isset($entityData[$property->getName()])) {
 
                 switch ($property_casting) {
+
+                    case 'mixed':
+                        $this->{$property->getName()} = $entityData[$property->getName()];
+                        break;
+
                     case 'string' :
                         $this->{$property->getName()} = (string)$entityData[$property->getName()];
                         break;
