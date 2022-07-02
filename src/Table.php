@@ -197,6 +197,10 @@ class Table implements TableInterface
         return true;
     }
 
+    public function delete(EntityInterface $entity) : bool {
+        return $this->deleteById($entity);
+    }
+
     /**
      * Delete an entity/row by its id
      * @param EntityInterface $entity
@@ -208,5 +212,12 @@ class Table implements TableInterface
         ])->rowCount() > 0;
     }
 
-
+    /**
+     * Wrapper for get the Medoo object
+     * @return Medoo
+     */
+    public function getMedoo(): Medoo
+    {
+        return $this->medoo;
+    }
 }
