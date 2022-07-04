@@ -130,6 +130,7 @@ class Table implements TableInterface
      * Create a new entity
      * @param array $data
      * @return EntityInterface
+     * @throws Exceptions\NotImplementedException
      */
     public function new(array $data = []): EntityInterface
     {

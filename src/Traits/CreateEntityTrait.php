@@ -76,9 +76,10 @@ trait CreateEntityTrait
             // Try to cast the properties
             $property_casting = $property->hasType() ? $property->getType()->getName() : 'string';
 
-            if (!isset($entityData[$property->getName()]) && is_string($property_casting) && class_exists($property_casting) ) {
-                $this->{$property->getName()} = $this->joinTableVarNameMutation($property->getName(), $entityData);
-            }
+            #/** Search for mutations of the property name from the class in the entityData array */
+            #if (!isset($entityData[$property->getName()]) && is_string($property_casting) && class_exists($property_casting) ) {
+            #    $this->{$property->getName()} = $this->joinTableVarNameMutation($property->getName(), $entityData) ?? null;
+            #}
 
             if (isset($entityData[$property->getName()])) {
 
@@ -135,7 +136,15 @@ trait CreateEntityTrait
                         break;
 
                     case 'DateTime':
-                        $this->{$property->getName()} = (new DateTime($entityData[$property->getName()]))->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+                        if(is_string($entityData[$property->getName()]) ) {
+                            /** Build a new DateTime Object */
+                            $this->{$property->getName()} = (new DateTime($entityData[$property->getName()]))
+                                ->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+                        } else {
+                            /** Use the given DateTime Object */
+                            $this->{$property->getName()} = $entityData[$property->getName()]
+                                ->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+                        }
                         break;
 
                     default:
@@ -155,10 +164,11 @@ trait CreateEntityTrait
      * Custom property name mutation helper
      * @param string $table_basename
      * @param array $entityData
-     * @param $l
-     * @return string
+     * @param bool $l
+     * @return EntityInterface
+     * @throws InvalidDefinitionException
      */
-    private function joinTableVarNameMutation(string $table_basename, array $entityData, $l = true): EntityInterface
+    private function joinTableVarNameMutation(string $table_basename, array $entityData, bool $l = true): string|null
     {
 
         if (isset($entityData[lcfirst($table_basename)])) {
@@ -185,11 +195,11 @@ trait CreateEntityTrait
             return $this->joinTableVarNameMutation(substr($table_basename, 0, -1), $entityData, false);
         }
 
-        #if($l && !isset($entityData[$table_basename])) {
+        if($l && !isset($entityData[$table_basename])) {
             throw new InvalidDefinitionException(sprintf('Joining failed because the %s is not defined in the data set for the entity', $table_basename));
-        #}
+        }
 
-       # return $table_basename;
+        return null;
     }
 
 

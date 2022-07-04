@@ -236,7 +236,7 @@ trait DefaultTableFinderMethodsTrait
 
     /**
      * Create an entity object based on the entityData
-     * @throws NotImplementedException
+     * @throws NotImplementedException|InvalidDefinitionException
      */
     private function entity(array $entityData = []): EntityInterface|array
     {
@@ -440,9 +440,13 @@ trait DefaultTableFinderMethodsTrait
      * Return all rows if the current table
      * @return array
      */
-    public function getAll(): array
+    public function getAll(array $where = []): array
     {
-        $results = $this->medoo->select($this->table_name, '*');
+        if(count($where) > 0) {
+            $results = $this->medoo->select($this->table_name, '*', $where);
+        } else {
+            $results = $this->medoo->select($this->table_name, '*');
+        }
         $set = [];
 
         foreach ($results as $result) {
