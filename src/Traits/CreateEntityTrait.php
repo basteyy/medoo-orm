@@ -48,7 +48,6 @@ trait CreateEntityTrait
      */
     private function createDefinedEntity(array $entityData): void
     {
-
         $reelection = ReflectionFactory::getReflection($this);
 
         // Get all public properties from the reflected class
@@ -157,49 +156,6 @@ trait CreateEntityTrait
 
             }
         }
-    }
-
-
-    /**
-     * Custom property name mutation helper
-     * @param string $table_basename
-     * @param array $entityData
-     * @param bool $l
-     * @return EntityInterface
-     * @throws InvalidDefinitionException
-     */
-    private function joinTableVarNameMutation(string $table_basename, array $entityData, bool $l = true): string|null
-    {
-
-        if (isset($entityData[lcfirst($table_basename)])) {
-            return $entityData[lcfirst($table_basename)];
-        }
-
-        if (isset($entityData[ucfirst($table_basename)])) {
-            return $entityData[ucfirst($table_basename)];
-        }
-
-        if (isset($entityData[strtolower($table_basename)])) {
-            return $entityData[strtolower($table_basename)];
-        }
-
-        if (isset($entityData[strtoupper($table_basename)])) {
-            return $entityData[strtoupper($table_basename)];
-        }
-
-        if($l && !str_ends_with($table_basename, 's')) {
-            return $this->joinTableVarNameMutation($table_basename . 's', $entityData, false);
-        }
-
-        if($l && str_ends_with($table_basename, 's')) {
-            return $this->joinTableVarNameMutation(substr($table_basename, 0, -1), $entityData, false);
-        }
-
-        if($l && !isset($entityData[$table_basename])) {
-            throw new InvalidDefinitionException(sprintf('Joining failed because the %s is not defined in the data set for the entity', $table_basename));
-        }
-
-        return null;
     }
 
 

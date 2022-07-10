@@ -22,7 +22,7 @@ final class ReflectionFactory
      */
     public static function getReflection($class): ReflectionClass
     {
-        $class_name = get_class($class);
+        $class_name = is_string($class) ? $class : get_class($class);
 
         if (!isset(self::$reflections[$class_name])) {
             self::$reflections[$class_name] = new ReflectionClass($class);

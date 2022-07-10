@@ -13,11 +13,13 @@ namespace basteyy\MedooOrm\Traits;
 use basteyy\MedooOrm\Entity;
 use basteyy\MedooOrm\Exceptions\InvalidDefinitionException;
 use basteyy\MedooOrm\Exceptions\NotImplementedException;
+use basteyy\MedooOrm\Helper\ReflectionFactory;
 use basteyy\MedooOrm\Helper\Singleton;
 use basteyy\MedooOrm\Interfaces\EntityInterface;
 use Exception;
 use JetBrains\PhpStorm\ArrayShape;
 use ReflectionException;
+use ReflectionProperty;
 
 trait DefaultTableFinderMethodsTrait
 {
@@ -266,6 +268,14 @@ trait DefaultTableFinderMethodsTrait
                     $column = array_key_last($conditions);
                     $value = $entityData[array_key_first($conditions)];
 
+                    /** Search for the argument of the entity class, which is the join var */
+                    /** @var \ReflectionClass $reelection */
+                    $reelection = ReflectionFactory::getReflection($this->getEntityName($this->current_class_name));
+
+                    if(!$reelection->hasProperty($table_basename)) {
+                        $table_basename = $this->propertyNameMutation($table_basename, $reelection);
+                    }
+
                     $entityData[$table_basename] = (new $table(Singleton::getMedoo()))->getOneBySingleColumn($column, $value);
 
 
@@ -280,6 +290,59 @@ trait DefaultTableFinderMethodsTrait
 
         return new ((string)$this->getEntityName($this->current_class_name))($entityData, $this->id_column);
     }
+
+
+    /**
+     * Method is search for the correct name of an argument. Trys a few mutations and calls itself.
+     * @param $basename
+     * @param \ReflectionClass $reflectionClass
+     * @param bool $second_mutation
+     * @return string|false
+     */
+    private function propertyNameMutation($basename, \ReflectionClass $reflectionClass, bool $second_mutation = false) : string|false {
+
+        if($reflectionClass->hasProperty(lcfirst($basename))) {
+            return lcfirst($basename);
+        }
+
+        if($reflectionClass->hasProperty(ucfirst($basename))) {
+            return ucfirst($basename);
+        }
+
+        if($reflectionClass->hasProperty(strtolower($basename))) {
+            return strtolower($basename);
+        }
+
+        if($reflectionClass->hasProperty(strtoupper($basename))) {
+            return strtoupper($basename);
+        }
+
+        if($second_mutation) {
+            return false;
+        }
+
+        if(str_ends_with($basename, 's')) {
+
+            $mutation = $this->propertyNameMutation(substr($basename, 0, -1), $reflectionClass, true);;
+
+            if(is_string($mutation)) {
+                return $mutation;
+            }
+        }
+
+        if(!str_ends_with($basename, 's')) {
+
+            $mutation = $this->propertyNameMutation($basename . 's', $reflectionClass, true);
+
+            if(is_string($mutation)) {
+                return $mutation;
+            }
+        }
+
+        throw new \InvalidArgumentException(sprintf('Property %s not found', $basename));
+
+    }
+
 
     /**
      * @throws Exception

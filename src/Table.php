@@ -151,7 +151,7 @@ class Table implements TableInterface
     {
         // Save the public parameter to database
         $entity_reflection = (ReflectionFactory::getReflection($entity))->getProperties(\ReflectionProperty::IS_PUBLIC);
-
+        $this->entity_reflection = $entity_reflection;
         $entity_saving_data = [];
 
         foreach ($entity_reflection as $property) {
