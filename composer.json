@@ -22,6 +22,7 @@
         "catfan/medoo": "^2.1",
         "basteyy/minimal-hash-wrapper": "^1.0",
         "basteyy/various-php-snippets": "dev-master",
-        "symfony/console": "^6.1"
+        "symfony/console": "^6.0",
+        "ext-mysqli": "*"
     }
 }

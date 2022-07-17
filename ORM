@@ -1,0 +1,58 @@
+#!/usr/bin/env php
+<?php declare(strict_types=1);
+/**
+ * This file is part of the Medoo-ORM Script.
+ *
+ * ORM is the console entrypoint for building models
+ *
+ * @version 1.0.0
+ * @package https://github.com/basteyy/medoo-orm
+ * @author Sebastian Eiweleit <sebastian@eiweleit.de>
+ * @license Attribution-NonCommercial-ShareAlike 4.0 International
+ */
+
+namespace basteyy\MedooOrm;
+
+use basteyy\MedooOrm\Commands\CreateEntityCommand;
+use basteyy\MedooOrm\Commands\CreateTableCommand;
+use basteyy\MedooOrm\Commands\CreateTableWithEntityCommand;
+use Symfony\Component\Console\Application;
+
+/** Force cli environment */
+if (php_sapi_name() != "cli") {
+    exit('Use cli to run this script');
+}
+
+define('ORM_ROOT', __DIR__);
+
+/** @var array $searches Potential locations of the autoload.php */
+$searches = [
+    __DIR__. '/vendor/autoload.php',
+    dirname(__DIR__,1). '/vendor/autoload.php',
+    dirname(__DIR__,2). '/vendor/autoload.php',
+    dirname(__DIR__,3). '/vendor/autoload.php'
+];
+
+foreach($searches as $f) {
+    if(file_exists($f)) {
+        include $f;
+        $i = true;
+    }
+}
+
+if(!isset($i)) {
+    exit(sprintf('Cant find composer autoload nether at the following: %s', implode(', ' . PHP_EOL, $searches)));
+}
+
+/* Start the Symfony Application */
+
+/** @var $application $application */
+$application = new Application();
+
+/* Add scripts */
+$application->add(new CreateTableWithEntityCommand());
+$application->add(new CreateEntityCommand());
+$application->add(new CreateTableCommand());
+
+/* Run the script */
+$application->run();

@@ -1,12 +1,12 @@
-<?php
+<?php declare(strict_types=1);
 /**
+ * This file is part of the Medoo-ORM Script.
+ *
  * @version 1.0.0
  * @package https://github.com/basteyy/medoo-orm
  * @author Sebastian Eiweleit <sebastian@eiweleit.de>
  * @license Attribution-NonCommercial-ShareAlike 4.0 International
  */
-
-declare(strict_types=1);
 
 namespace basteyy\MedooOrm\Traits;
 
@@ -445,14 +445,20 @@ trait DefaultTableFinderMethodsTrait
      */
     protected function getColumns(string $table_name, bool $skip_alias = false): array
     {
-
         if (!ctype_alnum(str_replace('_', '', $table_name))) {
             throw new Exception(sprintf('Sorry, but the table name %s looks invalid/dangerous!', $table_name));
         }
 
-        // Use Cache
-        if (APCU && apcu_exists('cols' . $table_name)) {
-            return apcu_fetch('cols' . $table_name);
+        $apcu = false;
+
+        if(!defined('DEBUG')) {
+            if(function_exists('apcu_enabled') && apcu_enabled()) {
+                if(apcu_exists('cols' . $table_name)) {
+                    return apcu_fetch('cols' . $table_name);
+                }
+
+                $apcu = true;
+            }
         }
 
         $columns = [];
@@ -470,8 +476,8 @@ trait DefaultTableFinderMethodsTrait
             }
         }
 
-        if (APCU) {
-            apcu_add('cols' . $table_name, $columns, APCU_MEDIUM_TTL);
+        if ($apcu) {
+            apcu_add('cols' . $table_name, $columns, (60*10));
         }
 
         return $columns;
