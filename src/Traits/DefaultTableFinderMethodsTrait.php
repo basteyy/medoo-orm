@@ -238,7 +238,7 @@ trait DefaultTableFinderMethodsTrait
 
     /**
      * Create an entity object based on the entityData
-     * @throws NotImplementedException|InvalidDefinitionException
+     * @throws NotImplementedException|InvalidDefinitionException|ReflectionException
      */
     private function entity(array $entityData = []): EntityInterface|array
     {
@@ -262,11 +262,17 @@ trait DefaultTableFinderMethodsTrait
 
                     // Data exists?
                     if(!isset($entityData[array_key_first($conditions)])) {
-                        throw new Exception(sprintf('Cant find data for the join condition on %s-Table "%s"', $this->current_class_name, $conditions[0]));
+                        throw new Exception(
+                            sprintf('Cant find data for the join condition on %s-Table "%s"',
+                                $this->current_class_name,
+                                isset($conditions[0]) ? $conditions[0] : array_key_first($conditions)
+                            )
+                        );
                     }
 
-                    $column = array_key_last($conditions);
-                    $value = $entityData[array_key_first($conditions)];
+                    $column = array_key_last($conditions);                  // Local Table!
+                    $value = $entityData[array_key_first($conditions)];     // Local Table Value!
+                    $joined_table_column = $conditions[$column];
 
                     /** Search for the argument of the entity class, which is the join var */
                     /** @var \ReflectionClass $reelection */
@@ -276,7 +282,7 @@ trait DefaultTableFinderMethodsTrait
                         $table_basename = $this->propertyNameMutation($table_basename, $reelection);
                     }
 
-                    $entityData[$table_basename] = (new $table(Singleton::getMedoo()))->getOneBySingleColumn($column, $value);
+                    $entityData[$table_basename] = (new $table(Singleton::getMedoo()))->getOneBySingleColumn($joined_table_column, $value);
 
 
                 } elseif (is_string($table)) {
