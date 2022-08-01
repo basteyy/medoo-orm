@@ -43,6 +43,9 @@ class Table implements TableInterface
     private ?array $join;
     private string $current_class_name;
 
+    /** @var bool $noJoin Helper to skip a join on autojoins */
+    private bool $noJoin = false;
+
     use DefaultTableFinderMethodsTrait, FindClassNameTrait, GetModelTrait;
 
     use LoggingTrait;
@@ -199,5 +202,15 @@ class Table implements TableInterface
     public function getMedoo(): Medoo
     {
         return $this->medoo;
+    }
+
+    /**
+     * Use that to skip automatic joins
+     * @return $this
+     */
+    public function noJoin(): self
+    {
+        $this->noJoin = true;
+        return $this;
     }
 }

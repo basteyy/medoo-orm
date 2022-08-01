@@ -243,7 +243,7 @@ trait DefaultTableFinderMethodsTrait
     private function entity(array $entityData = []): EntityInterface|array
     {
         /** Join the current entry to a table? */
-        if(isset($this->table_join)) {
+        if(isset($this->table_join) && !$this->noJoin) {
             foreach($this->table_join as $table => $conditions) {
                 // $table is a string of a fqn of an entity
 
@@ -292,6 +292,10 @@ trait DefaultTableFinderMethodsTrait
 
 
             }
+        }
+
+        if($this->noJoin) {
+            $this->noJoin = false;
         }
 
         return new ((string)$this->getEntityName($this->current_class_name))($entityData, $this->id_column);
