@@ -153,7 +153,12 @@ class Table implements TableInterface
                 // (https://dev.mysql.com/doc/refman/8.0/en/datetime.html)
             }
 
-            $entity_saving_data[$property->getName()] = $value;
+            /**
+             * Joined data not savable for now  ..
+             */
+            if (!is_object($value)) {
+                $entity_saving_data[$property->getName()] = $value;
+            }
 
             if ($property->getName() === $this->id_column) {
                 $id_column_type = $property;
