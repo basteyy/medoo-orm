@@ -12,6 +12,8 @@ namespace basteyy\MedooOrm\Traits;
 
 trait LoggingTrait
 {
+    protected mixed $logger;
+
     private bool $shutdown_method_Registered = false;
     private string $_log_stream = '';
 

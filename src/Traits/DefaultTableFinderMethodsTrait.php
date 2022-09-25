@@ -23,6 +23,9 @@ use ReflectionProperty;
 
 trait DefaultTableFinderMethodsTrait
 {
+    /** @var array $table_columns_cache Cache for table columns */
+    protected array $table_columns_cache = [];
+
     /**
      * @param array|null $where
      * @param array|null $selectedColumns
@@ -459,6 +462,12 @@ trait DefaultTableFinderMethodsTrait
             throw new Exception(sprintf('Sorry, but the table name %s looks invalid/dangerous!', $table_name));
         }
 
+        $skip_alias_string = $skip_alias ? 'a' : 'na';
+
+        if (isset($this->table_columns_cache[$table_name][$skip_alias_string])) {
+            return $this->table_columns_cache[$table_name][$skip_alias_string];
+        }
+
         $apcu = false;
 
         if(!defined('DEBUG')) {
@@ -490,7 +499,9 @@ trait DefaultTableFinderMethodsTrait
             apcu_add('cols' . $table_name, $columns, (60*10));
         }
 
-        return $columns;
+        $this->table_columns_cache[$table_name][$skip_alias_string] = $columns;
+
+        return $this->table_columns_cache[$table_name][$skip_alias_string];
     }
 
 

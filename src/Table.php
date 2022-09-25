@@ -28,19 +28,26 @@ use Psr\Container\NotFoundExceptionInterface;
 
 class Table implements TableInterface
 {
+    /** @var bool $auto_join Join tables automatically by default? */
     public bool $auto_join = false;
+
     /** @var string The name of the database table */
     protected string $table_name;
+
     /** @var string The name of the id column */
     protected string $id_column;
+
     /** @var array|string[] List of keys which can hold the medoo connection (in the ContainerInterface) */
     private array $containerConnectionKeyList = [
         'database', 'db', 'DatabaseConnection', 'connection', Medoo::class
     ];
+
     /** @var Medoo|mixed|null Medoo Connection */
     private ?Medoo $medoo;
+
     /** @var array|null Join table to other tables */
     private ?array $join;
+
     private string $current_class_name;
 
     /** @var bool $noJoin Helper to skip a join on autojoins */
@@ -156,7 +163,7 @@ class Table implements TableInterface
             /**
              * Joined data not savable for now  ..
              */
-            if (!is_object($value)) {
+            if (!is_object($value) && !$property->hasDefaultValue()) {
                 $entity_saving_data[$property->getName()] = $value;
             }
 

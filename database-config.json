@@ -1,1 +1,1 @@
-{"charset":"utf8mb4","host":"db","port":3306,"user":"db","password":"db","namespace":"TestNamespace","storage":"\/var\/www\/html\/basteyy\/medoo-orm"}
+{"charset":"utf8mb4","host":"db","port":3306,"user":"db","password":"db","namespace":"GoCrazy\\Models","storage":"\/var\/www\/html\/v2\/Models","selected_database":null}

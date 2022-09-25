@@ -1,4 +1,16 @@
 <?php
+/**
+ * This file is part of the package go-crazy-legacy.
+ * The script is nonfree software.
+ * The usage is allowed only under the conditions from the license.
+ *
+ * @author Sebastian Eiweleit <sebastian@eiweleit.de>
+ * @website https://eiweleit.de
+ * @website https://www.go-crazy.de
+ * @website https://www.bikereisen.de
+ * @website https://github.com/basteyy/go-crazy-legacy
+ * @license https://eiweleit.de/private-software
+ */
 declare(strict_types=1);
 /**
  * This file is part of the Medoo-ORM Script.
