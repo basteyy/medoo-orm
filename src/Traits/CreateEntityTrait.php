@@ -10,9 +10,7 @@
 
 namespace basteyy\MedooOrm\Traits;
 
-use basteyy\MedooOrm\Exceptions\InvalidDefinitionException;
 use basteyy\MedooOrm\Helper\ReflectionFactory;
-use basteyy\MedooOrm\Interfaces\EntityInterface;
 use DateTime;
 use Exception;
 use ReflectionException;
@@ -156,6 +154,8 @@ trait CreateEntityTrait
 
             }
         }
+
+
     }
 
 

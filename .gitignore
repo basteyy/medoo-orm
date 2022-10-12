@@ -1,0 +1,5 @@
+database-config.json
+composer.lock
+.idea
+.vendor
+.ddev
