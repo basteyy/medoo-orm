@@ -128,10 +128,32 @@ trait DefaultTableFinderMethodsTrait
         }
 
         foreach ($where as $field => $value) {
-            if (!str_contains($field, '.')) {
-                $where[$this->table_name . '.' . $field] = $value;
-                unset($where[$field]);
+
+            if('ORDER' === $field ) {
+
+                $order_build = [];
+
+                foreach($value as $order_field => $order_value) {
+
+                    if(is_int($order_field)) {
+                        $order_build[] = $this->table_name . '.' . $order_value;
+                    }
+
+                    if(!is_int($order_field)) {
+                        $order_build[$this->table_name . '.' . $order_field] = $order_value;
+                    }
+                }
+
+                $where['ORDER'] = $order_build;
+            } else {
+
+                if (!str_contains($field, '.')) {
+                    $where[$this->table_name . '.' . $field] = $value;
+                    unset($where[$field]);
+                }
+
             }
+
         }
 
         if (isset($join) || $this->auto_join && isset($this->join)) {

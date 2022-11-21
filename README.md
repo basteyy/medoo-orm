@@ -16,9 +16,9 @@ composer require basteyy/medoo-orm
 
 There are a few ways to config this.
 
-### Create the Medoo-Instance by youself
+### Create the Medoo-Instance by yourself
 
-You can create the medoo instance somehwere in your code and than load the tables by passing it:
+You can create the medoo instance somewhere in your code and than load the tables by passing it:
 
 ```php
 $config = []; // Config 
@@ -26,7 +26,7 @@ $medoo = new \Medoo\Medoo($config);
 $usersTable = new UsersTable($medoo);
 ```
 
-### Use Dpendecy Injection
+### Use Dependency Injection
 
 Create a definition somewhere in your code and simple call the tables:
 
@@ -60,48 +60,10 @@ You can simple pass the config as an array to the tables and let the script doin
 
 ```php
 $config = []; // The Config
-$usersTable = new UsersTable($config);
+$usersTable = new FancyTableClassTable($config);
 ```
 
-## Usage
 
-See the examples for usecases / examples. But at the glance you need a class which extends the orm table class, define the id column and table-name and thats it.
-
-## Examples
-
-### Users Table Example
-For example you have a users table called `users` like the following:
-
-```
-id | username | password | email | last_login
-```
-
-#### The UsersTable-Class
-
-First you create the Table for that (database-)table:
-
-```php
-// File: UsersTable.php
-
-// Define the class name and extend it with the Table Class
-class UsersTable extends basteyy\MedooOrm\Table {
-
-    // Abstract the database table
-    
-    //  the name of the database table (in this case users)   
-    protected string $table_name = 'users';
-    
-    // define the id column (in this case id)
-    protected string $id_column = 'id';
-}
-```
-
-##### Select a user
-```php
-$
-```
-
-#### The UsersEntity-Class
 
 ## License
 
