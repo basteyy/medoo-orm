@@ -25,6 +25,10 @@ trait FindClassNameTrait
             return self::$registry[$table_class_name];
         }
 
+        if(isset($this->entity_class_name) && class_exists($this->entity_class_name)) {
+            return $this->entity_class_name;
+        }
+
         $entity_computed_name = str_replace('\\Tables\\', '\\Entities\\', $table_class_name);
 
         $class_name_list = [];
@@ -55,8 +59,10 @@ trait FindClassNameTrait
         }
 
         if (isset(self::$registry[$table_class_name])) {
+            $this->entity_class_name = self::$registry[$table_class_name];
             return self::$registry[$table_class_name];
         }
+
 
         return Entity::class;
 
