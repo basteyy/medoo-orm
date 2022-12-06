@@ -46,9 +46,9 @@ class Table implements TableInterface
     private ?Medoo $medoo;
 
     /** @var array|null Join table to other tables */
-    private ?array $join;
+    protected ?array $join;
 
-    /** @var string $entity_class_name If set, the classname will be try to use for creating entities. If not set, it will be used for cache entity class name */
+    /** @var string $entity_class_name If set, the classname will be tried to use for creating entities. If not set, it will be used for cache entity class name */
     protected string $entity_class_name;
 
     /** @var string $current_class_name The Name of the current table class */

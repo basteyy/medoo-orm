@@ -20,7 +20,7 @@ implements \basteyy\MedooOrm\Interfaces\TableInterface
 {
     protected string $table_name = 'user';
     protected string $id_column = 'id';
-    protected array $table_join = [
+    protected array $join = [
         LoginTable::class => ["id" => "uid" ]
     ];
     // Local ID and remote ID

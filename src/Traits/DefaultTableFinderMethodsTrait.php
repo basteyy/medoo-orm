@@ -116,11 +116,12 @@ trait DefaultTableFinderMethodsTrait
     {
 
         // Attach the Joins from table
-        if(isset($this->table_join)) {
+        if(isset($this->join)) {
             if(!isset($join)) {
                 $join  = [];
             }
-            $join += $this->table_join;
+            $join += $this->join;
+
         }
 
         if (!isset($selectedColumns) || count($selectedColumns) === 0) {
@@ -265,8 +266,8 @@ trait DefaultTableFinderMethodsTrait
     private function entity(array $entityData = []): EntityInterface|array
     {
         /** Join the current entry to a table? */
-        if (isset($this->table_join) && !$this->noJoin) {
-            foreach ($this->table_join as $table => $conditions) {
+        if (isset($this->join) && !$this->noJoin) {
+            foreach ($this->join as $table => $conditions) {
                 // $table is a string of a fqn of an entity
 
                 if (class_exists($table)) {
