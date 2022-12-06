@@ -1,5 +1,4 @@
-<?php
-declare(strict_types=1);
+<?php declare(strict_types=1);
 /**
  * This file is part of the Medoo-ORM Script.
  *
@@ -28,8 +27,14 @@ class Entity implements EntityInterface
 
     use LoggingTrait;
 
+    /** @var bool $__new Indicator, if the entity is new (which means it will be updated) or not (insert) */
     protected bool $__new = false;
+
+    /** @var string $id_column The primary id column of the current table */
     private string $id_column;
+
+    /** @var array $__origData Storage of all original Data */
+    protected array $__origData = [];
 
     /**
      * @throws ReflectionException
@@ -74,6 +79,10 @@ class Entity implements EntityInterface
 
     }
 
+    /**
+     * If the entity is new or not
+     * @return bool
+     */
     public function isNew(): bool
     {
         return $this->__new;

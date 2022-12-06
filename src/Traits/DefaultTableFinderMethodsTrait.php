@@ -163,6 +163,8 @@ trait DefaultTableFinderMethodsTrait
 
             foreach ($join_command as $table => $_options) {
                 $raw_table_argument = $table;
+
+                /** In this scenario we have a "classic" medoo joining with leading join-type ([>], [><], [<]) */
                 if (($end = strpos($table, ']'))) {
 
                     $table_name = substr($table, $end + 1);
@@ -179,6 +181,16 @@ trait DefaultTableFinderMethodsTrait
                         unset($join_command[$raw_table_argument]['WHERE']);
                     }
 
+                }
+
+                if(class_exists($table)) {
+                    /** A table class which will be joined */
+                    $table_reflection = new ReflectionClass($table);
+                    if($table_reflection->hasProperty('table_name')) {
+                        $property = $table_reflection->getProperty('table_name')->getDefaultValue();
+                        $join_command['[>]' . $property] = $_options;
+                        unset($join_command[$table]);
+                    }
                 }
             }
         }

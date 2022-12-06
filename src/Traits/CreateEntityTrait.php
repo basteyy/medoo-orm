@@ -15,14 +15,12 @@ use DateTime;
 use Exception;
 use ReflectionException;
 use ReflectionProperty;
+use const ENT_QUOTES;
 
 trait CreateEntityTrait
 {
     /** @var array $__ignored_property_names Storage for properties, which are allowed to be not initialized */
     protected array $__ignored_property_names = ['__new'];
-
-    /** @var array $__origData Storage of all original Data */
-    protected array $__origData = [];
 
     /**
      * Create an entity, where no specific entity-class is created
@@ -34,7 +32,7 @@ trait CreateEntityTrait
     {
         foreach ($entityData as $property_name => $property_value) {
             $this->{$property_name} = $property_value;
-            $this->__orig[$property_name] = $property_value;
+            $this->__origData[$property_name] = $property_value;
         }
     }
 
@@ -80,17 +78,26 @@ trait CreateEntityTrait
 
             if (isset($entityData[$property->getName()])) {
 
+                $this->__origData[$property->getName()] = $entityData[$property->getName()];
+
                 switch ($property_casting) {
                     case 'mixed' :
-                        $this->{$property->getName()} = $entityData[$property->getName()];
+                        if(is_string($entityData[$property->getName()])) {
+                            $this->{$property->getName()} = (string) htmlspecialchars($entityData[$property->getName()], ENT_QUOTES, 'UTF-8');
+                        } else {
+                            $this->{$property->getName()} = $entityData[$property->getName()];
+                        }
                         break;
 
                     case 'string' :
-                        $this->{$property->getName()} = (string)$entityData[$property->getName()];
+                        $this->{$property->getName()} = (string) htmlspecialchars($entityData[$property->getName()], ENT_QUOTES, 'UTF-8');
+                        //$this->{$property->getName()} = (string)$entityData[$property->getName()];
                         break;
 
                     case 'array' :
-                        if (is_array($entityData[$property->getName()])) {
+                        if(is_object($entityData[$property->getName()])) {
+                            $this->{$property->getName()}[] = $entityData[$property->getName()];
+                        } elseif (is_array($entityData[$property->getName()])) {
                             $this->{$property->getName()} = $entityData[$property->getName()];
                         } else {
 

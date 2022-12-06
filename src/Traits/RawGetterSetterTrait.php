@@ -12,12 +12,22 @@ namespace basteyy\MedooOrm\Traits;
 
 trait RawGetterSetterTrait
 {
-
+    /**
+     * Return the raw value of `$key`. This is a non-secured output!
+     * @param $key
+     * @return mixed
+     */
     public function getRaw($key) : mixed {
-        return $this->__orig[$key] ?? false;
+        return $this->__origData[$key] ?? false;
     }
 
-    public function setRaw(string $key, mixed $value) {
+    /**
+     * Set the value of `$key` in a non-secured raw way.
+     * @param string $key
+     * @param mixed $value
+     * @return void
+     */
+    public function setRaw(string $key, mixed $value) : void {
         $this->{$key} = $value;
     }
 }
