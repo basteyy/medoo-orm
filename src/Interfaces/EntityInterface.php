@@ -12,5 +12,14 @@ namespace basteyy\MedooOrm\Interfaces;
 
 interface EntityInterface
 {
-    public function __construct(array $entityData = [], ?string $id_column = null);
+    /**
+     * @param string $tableClassName Table Class which creates the entity
+     * @param array $entityData Entitydata
+     * @param string|null $id_column
+     */
+    public function __construct(
+        string $tableClassName,
+        array $entityData = [],
+        ?string $id_column = null
+    );
 }

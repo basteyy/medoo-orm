@@ -13,7 +13,6 @@ namespace basteyy\MedooOrm\Interfaces;
 use Exception;
 use Medoo\Medoo;
 use Psr\Container\ContainerInterface;
-use Psr\Log\LoggerInterface;
 
 interface TableInterface
 {

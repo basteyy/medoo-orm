@@ -130,23 +130,29 @@ trait DefaultTableFinderMethodsTrait
 
         foreach ($where as $field => $value) {
 
-            if('ORDER' === $field ) {
+            if('ORDER' === $field || 'LIMIT' === $field) {
 
                 $order_build = [];
 
-                foreach($value as $order_field => $order_value) {
+                if(is_array($value)) {
+                    foreach ($value as $order_field => $order_value) {
 
-                    if(is_int($order_field)) {
-                        $order_build[] = $this->table_name . '.' . $order_value;
-                    }
+                        if (is_int($order_field)) {
+                            $order_build[] = $this->table_name . '.' . $order_value;
+                        }
 
-                    if(!is_int($order_field)) {
-                        $order_build[$this->table_name . '.' . $order_field] = $order_value;
+                        if (!is_int($order_field)) {
+                            $order_build[$this->table_name . '.' . $order_field] = $order_value;
+                        }
                     }
+                    $where[$field] = $order_build;
                 }
 
-                $where['ORDER'] = $order_build;
-            } else {
+                if(!is_array($value)) {
+                    $where[$field] = $value;
+                }
+
+            }  else {
 
                 if (!str_contains($field, '.')) {
                     $where[$this->table_name . '.' . $field] = $value;
@@ -189,7 +195,7 @@ trait DefaultTableFinderMethodsTrait
                     $table_reflection = new ReflectionClass($table);
                     if($table_reflection->hasProperty('table_name')) {
                         $property = $table_reflection->getProperty('table_name')->getDefaultValue();
-                        $join_command['[>]' . $property] = $_options;
+                        $join_command['[><]' . $property] = $_options;
                         unset($join_command[$table]);
                     }
                 }
@@ -330,7 +336,12 @@ trait DefaultTableFinderMethodsTrait
             $this->noJoin = false;
         }
 
-        return new ((string)$this->getEntityName($this->current_class_name))($entityData, $this->id_column, $joins ?? null);
+        return new ((string)$this->getEntityName($this->current_class_name))(
+            get_class($this),
+            $entityData,
+            $this->id_column,
+            $joins ?? null
+        );
     }
 
     /**

@@ -1,4 +1,5 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 /**
  * This file is part of the Medoo-ORM Script.
  *
@@ -25,6 +26,8 @@ use Medoo\Medoo;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use ReflectionException;
+use ReflectionProperty;
 
 class Table implements TableInterface
 {
@@ -36,26 +39,24 @@ class Table implements TableInterface
 
     /** @var string The name of the id column */
     protected string $id_column;
-
+    /** @var array|null Join table to other tables */
+    protected ?array $join;
+    /** @var string $entity_class_name If set, the classname will be tried to use for creating entities. If not set, it will be used for cache entity class name */
+    protected string $entity_class_name;
     /** @var array|string[] List of keys which can hold the medoo connection (in the ContainerInterface) */
     private array $containerConnectionKeyList = [
         'database', 'db', 'DatabaseConnection', 'connection', Medoo::class
     ];
-
     /** @var Medoo|mixed|null Medoo Connection */
     private ?Medoo $medoo;
-
-    /** @var array|null Join table to other tables */
-    protected ?array $join;
-
-    /** @var string $entity_class_name If set, the classname will be tried to use for creating entities. If not set, it will be used for cache entity class name */
-    protected string $entity_class_name;
-
     /** @var string $current_class_name The Name of the current table class */
     private string $current_class_name;
 
-    /** @var bool $noJoin Helper to skip a join on autojoins */
+    /** @var bool $noJoin Helper to skip a join on auto-joins */
     private bool $noJoin = false;
+
+    /** @var ReflectionProperty[] */
+    private array $entity_reflection;
 
     use DefaultTableFinderMethodsTrait, FindClassNameTrait, GetModelTrait;
 
@@ -109,21 +110,21 @@ class Table implements TableInterface
         $this->current_class_name = get_class($this);
     }
 
-
     /**
-     * Return the current table name
-     * @return string
+     * Wrapper for get the Medoo object
+     * @return Medoo
      */
-    public function getTableName(): string
+    public function getMedoo(): Medoo
     {
-        return $this->table_name;
+        return $this->medoo;
     }
 
     /**
-     * Create a new entity
      * @param array $data
      * @return EntityInterface
+     * @throws Exceptions\InvalidDefinitionException
      * @throws Exceptions\NotImplementedException
+     * @throws ReflectionException
      */
     public function new(array $data = []): EntityInterface
     {
@@ -135,15 +136,31 @@ class Table implements TableInterface
         return $this->entity($data);
     }
 
+    /**
+     * @throws ReflectionException
+     */
+    public function patch(EntityInterface $entity, array $data): EntityInterface
+    {
+        return $this->save($entity, $data, true);
+    }
+
 
     /**
      * Save an existing entity or create a new entity
-     * @throws \ReflectionException
+     * @throws ReflectionException
+     * @throws Exception
      */
-    public function save(EntityInterface $entity): bool
+    public function save(EntityInterface $entity, ?array $patching_date = null, ?bool $return_entity = null): bool|EntityInterface
     {
+        if (isset($patching_date)) {
+
+            foreach ($patching_date as $item => $value) {
+                $entity->{$item} = $value;
+            }
+        }
+
         // Save the public parameter to database
-        $entity_reflection = (ReflectionFactory::getReflection($entity))->getProperties(\ReflectionProperty::IS_PUBLIC);
+        $entity_reflection = (ReflectionFactory::getReflection($entity))->getProperties(ReflectionProperty::IS_PUBLIC);
         $this->entity_reflection = $entity_reflection;
         $entity_saving_data = [];
 
@@ -177,26 +194,46 @@ class Table implements TableInterface
 
         }
 
+
         if ($entity->isNew() && !isset($entity->{$this->id_column})) {
             unset($entity_saving_data[$this->id_column]);
             $this->medoo->insert($this->table_name, $entity_saving_data);
+            #$last_id = $this->medoo->id();
         } else {
             $this->medoo->update($this->table_name, $entity_saving_data, [
                 $this->id_column => $entity->{$this->id_column}
             ]);
+            #$last_id = $entity->{$this->id_column};
         }
 
-        if ($id_column_type->hasType() && $id_column_type->getType()->getName() === 'int') {
-            $entity->{$this->id_column} = (int)$this->medoo->id();
-        } else {
+        if (!isset($id_column_type)) {
+            throw new Exception(sprintf('Invalid dataset without id column in class %s (table %s)', $this->current_class_name, $this->getTableName()));
+        }
 
-            $entity->{$this->id_column} = $this->medoo->id();
+        #if ($id_column_type->hasType() && $id_column_type->getType()->getName() === 'int') {
+        #    $entity->{$this->id_column} = (int) $this->medoo->id();
+        #} else {
+        #    $entity->{$this->id_column} = $this->medoo->id();
+        #}
+
+        if (isset($return_entity) && $return_entity) {
+            return $entity;
         }
 
         return true;
     }
 
-    public function delete(EntityInterface $entity) : bool {
+    /**
+     * Return the current table name
+     * @return string
+     */
+    public function getTableName(): string
+    {
+        return $this->table_name;
+    }
+
+    public function delete(EntityInterface $entity): bool
+    {
         return $this->deleteById($entity);
     }
 
@@ -205,19 +242,11 @@ class Table implements TableInterface
      * @param EntityInterface $entity
      * @return bool
      */
-    public function deleteById(EntityInterface $entity) : bool {
-        return $this->medoo->delete($this->table_name, [
-            $this->id_column => $entity->{$this->id_column}
-        ])->rowCount() > 0;
-    }
-
-    /**
-     * Wrapper for get the Medoo object
-     * @return Medoo
-     */
-    public function getMedoo(): Medoo
+    public function deleteById(EntityInterface $entity): bool
     {
-        return $this->medoo;
+        return $this->medoo->delete($this->table_name, [
+                $this->id_column => $entity->{$this->id_column}
+            ])->rowCount() > 0;
     }
 
     /**
@@ -234,7 +263,8 @@ class Table implements TableInterface
      * Delete all elements from the table
      * @return void
      */
-    public function flush() : void {
+    public function flush(): void
+    {
         $this->medoo->exec('DELETE FROM ' . $this->medoo->tableQuote($this->getTableName()));
     }
 }

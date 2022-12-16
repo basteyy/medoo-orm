@@ -36,17 +36,33 @@ class Entity implements EntityInterface
     /** @var array $__origData Storage of all original Data */
     protected array $__origData = [];
 
+    /** @var string $tableClass Holds the fqn of the class, which created this entity */
+    protected string $tableClass;
+
+    /** @var string $entityClass The fqn name of the current entity class */
+    private string $entityClass;
+
+
     /**
+     * @param string $tableClass
+     * @param array $entityData
+     * @param string|null $id_column
+     * @param array|null $joins Additional joins for the current entity
+     * @param bool $auto_join Turn on/off the joins, which will be created with relations and propers (@see
      * @throws ReflectionException
-     * @throws Exception
-     * @var array $joins An array of joined entities, which will be attached to the end of the current entity object
      */
     public function __construct(
+        string $tableClass,
         array   $entityData = [],
         ?string $id_column = null,
-        ?array  $joins = [])
-    {
+        ?array  $joins = [],
+        bool    $auto_join = true
+    ) {
+        $this->tableClass = $tableClass;
+
         $reflection = ReflectionFactory::getReflection($this);
+
+        $this->entityClass = $reflection->getName();
 
         $this->id_column = $id_column ?? 'id';
 
