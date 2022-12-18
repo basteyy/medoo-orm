@@ -19,6 +19,7 @@ use basteyy\MedooOrm\Traits\DefaultTableFinderMethodsTrait;
 use basteyy\MedooOrm\Traits\FindClassNameTrait;
 use basteyy\MedooOrm\Traits\GetModelTrait;
 use basteyy\MedooOrm\Traits\LoggingTrait;
+use basteyy\MedooOrm\Traits\RelationsLogicTrait;
 use DateTime;
 use DateTimeZone;
 use Exception;
@@ -39,14 +40,18 @@ class Table implements TableInterface
 
     /** @var string The name of the id column */
     protected string $id_column;
+
     /** @var array|null Join table to other tables */
     protected ?array $join;
+
     /** @var string $entity_class_name If set, the classname will be tried to use for creating entities. If not set, it will be used for cache entity class name */
     protected string $entity_class_name;
+
     /** @var array|string[] List of keys which can hold the medoo connection (in the ContainerInterface) */
     private array $containerConnectionKeyList = [
         'database', 'db', 'DatabaseConnection', 'connection', Medoo::class
     ];
+
     /** @var Medoo|mixed|null Medoo Connection */
     private ?Medoo $medoo;
     /** @var string $current_class_name The Name of the current table class */
@@ -58,9 +63,14 @@ class Table implements TableInterface
     /** @var ReflectionProperty[] */
     private array $entity_reflection;
 
-    use DefaultTableFinderMethodsTrait, FindClassNameTrait, GetModelTrait;
+    /** @var array|string[] Fields, which are in json format */
+    public array $json_fields = [];
 
-    use LoggingTrait;
+    use DefaultTableFinderMethodsTrait,
+        FindClassNameTrait,
+        GetModelTrait,
+        LoggingTrait,
+        RelationsLogicTrait;
 
     /**
      * @throws ContainerExceptionInterface
@@ -153,7 +163,6 @@ class Table implements TableInterface
     public function save(EntityInterface $entity, ?array $patching_date = null, ?bool $return_entity = null): bool|EntityInterface
     {
         if (isset($patching_date)) {
-
             foreach ($patching_date as $item => $value) {
                 $entity->{$item} = $value;
             }
@@ -176,7 +185,7 @@ class Table implements TableInterface
                 /** @var DateTime $value */
                 $value = $value
                     ->setTimezone(new DateTimeZone('UTC'))
-                    ->format('Y-m-d H:m:s');
+                    ->format('Y-m-d H:i:s');
                 // Timezone and milliseconds (Y-m-d h:m:s.U e) are not supported by now by mysql/mariadb
                 // (https://dev.mysql.com/doc/refman/8.0/en/datetime.html)
             }
@@ -185,13 +194,17 @@ class Table implements TableInterface
              * Joined data not savable for now  ..
              */
             if (!is_object($value) && !$property->hasDefaultValue()) {
+
+                /** Detect json types and encode the values */
+                if (isset($this->json_fields) && in_array($property->getName(), $this->json_fields)) {
+                    $value = json_encode($value);
+                }
                 $entity_saving_data[$property->getName()] = $value;
             }
 
             if ($property->getName() === $this->id_column) {
                 $id_column_type = $property;
             }
-
         }
 
 

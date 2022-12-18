@@ -59,6 +59,11 @@ trait CreateEntityTrait
         // Get all default properties from the reflected class
         $default_properties = $reelection->getDefaultProperties();
 
+        /** Get json information from table */
+        if(ReflectionFactory::getReflection($this->tableClass)->hasProperty('json_fields')) {
+            $json_fields = ReflectionFactory::getReflection($this->tableClass)->getProperty('json_fields')->getDefaultValue();
+        }
+
         // Illiterate all properties
         /** @var ReflectionProperty $property */
         foreach ($properties as $property) {
@@ -79,6 +84,10 @@ trait CreateEntityTrait
             // Try to cast the properties
             $property_casting = $property->hasType() ? $property->getType()->getName() : 'string';
 
+            if(isset($json_fields) && in_array($property->getName(), $json_fields)){
+                $property_casting = 'json';
+            }
+
             #/** Search for mutations of the property name from the class in the entityData array */
             #if (!isset($entityData[$property->getName()]) && is_string($property_casting) && class_exists($property_casting) ) {
             #    $this->{$property->getName()} = $this->joinTableVarNameMutation($property->getName(), $entityData) ?? null;
@@ -92,9 +101,22 @@ trait CreateEntityTrait
                     case 'mixed' :
                         if (is_string($entityData[$property->getName()])) {
                             $this->{$property->getName()} = (string)htmlspecialchars($entityData[$property->getName()], ENT_QUOTES, 'UTF-8');
+                        }
+
+                        if (is_array($entityData[$property->getName()])){
+                            $this->{$property->getName()} = json_encode($entityData[$property->getName()]);
+                        }
+
+                        break;
+
+                    case 'json':
+
+                        if(is_string($entityData[$property->getName()])) {
+                            $this->{$property->getName()} = json_decode($entityData[$property->getName()], false, JSON_PRETTY_PRINT);
                         } else {
                             $this->{$property->getName()} = $entityData[$property->getName()];
                         }
+
                         break;
 
                     case 'string' :
@@ -113,12 +135,12 @@ trait CreateEntityTrait
                                 // Empty array
                                 $this->{$property->getName()} = [];
                             } else {
-                                // Json?
+
+                                /** Try to create array from json object first, if that throws an execption, try to create a array from a textlist */
                                 try {
-                                    //varDebug($entityData[$property->getName()], json_decode($entityData[$property->getName()], true));
-                                    //varDebug(($entityData[$property->getName()]));
-                                    $this->{$property->getName()} = unserialize($entityData[$property->getName()]);
-                                } catch (Exception $exception) {
+                                    $this->{$property->getName()} = json_decode($entityData[$property->getName()], true);
+                                } catch (\Exception $exception) {
+
                                     if (str_contains($entityData[$property->getName()], "\n")) {
                                         // Explode \n from field
                                         foreach (explode("\n", $entityData[$property->getName()]) as $value) {
@@ -129,7 +151,18 @@ trait CreateEntityTrait
                                     } else {
                                         $this->{$property->getName()} = [$entityData[$property->getName()]];
                                     }
+
                                 }
+
+                                #unserialize([]);
+
+                                // Json?
+                                #try {
+                                    //varDebug($entityData[$property->getName()], json_decode($entityData[$property->getName()], true));
+                                    //varDebug(($entityData[$property->getName()]));
+                               #     $this->{$property->getName()} = unserialize($entityData[$property->getName()]);
+                                #} catch (Exception $exception) {
+                                #}
                             }
                         }
 
@@ -173,7 +206,7 @@ trait CreateEntityTrait
             /**
              * The auto joins are working only, when auto join is activated
              */
-            if (isset($this->join) && !$this->noJoin) {
+            if ($this->use_relations) {
 
                 if (!isset($entityData[$property->getName()]) && 'array' === $property_casting) {
                     if (str_ends_with($property->getName(), 'Entity')) {

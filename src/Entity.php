@@ -42,23 +42,23 @@ class Entity implements EntityInterface
     /** @var string $entityClass The fqn name of the current entity class */
     private string $entityClass;
 
+    /** @var bool $use_relations Use relations from the table */
+    private bool $use_relations;
 
     /**
-     * @param string $tableClass
-     * @param array $entityData
-     * @param string|null $id_column
-     * @param array|null $joins Additional joins for the current entity
-     * @param bool $auto_join Turn on/off the joins, which will be created with relations and propers (@see
      * @throws ReflectionException
      */
     public function __construct(
-        string $tableClass,
+        string  $tableClass,
         array   $entityData = [],
         ?string $id_column = null,
-        ?array  $joins = [],
-        bool    $auto_join = true
+        array   $joins = [],
+        bool    $auto_join = true,
+        bool    $use_relations = true
     ) {
         $this->tableClass = $tableClass;
+
+        $this->use_relations = $use_relations;
 
         $reflection = ReflectionFactory::getReflection($this);
 

@@ -1,4 +1,5 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
 /**
  * This file is part of the Medoo-ORM Script.
  *
@@ -13,13 +14,19 @@ namespace basteyy\MedooOrm\Interfaces;
 interface EntityInterface
 {
     /**
-     * @param string $tableClassName Table Class which creates the entity
-     * @param array $entityData Entitydata
+     * @param string $tableClass
+     * @param array $entityData
      * @param string|null $id_column
+     * @param array $joins
+     * @param bool $auto_join
+     * @param bool $use_relations
      */
     public function __construct(
-        string $tableClassName,
-        array $entityData = [],
-        ?string $id_column = null
+        string  $tableClass,
+        array   $entityData = [],
+        ?string $id_column = null,
+        array   $joins = [],
+        bool    $auto_join = true,
+        bool    $use_relations = true
     );
 }

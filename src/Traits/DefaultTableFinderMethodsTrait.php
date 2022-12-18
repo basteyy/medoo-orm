@@ -340,7 +340,10 @@ trait DefaultTableFinderMethodsTrait
             get_class($this),
             $entityData,
             $this->id_column,
-            $joins ?? null
+            $joins ?? [],
+            $auto_join ?? true,
+            $this->use_relations ?? $this->default_relations_state ?? true
+
         );
     }
 
@@ -589,8 +592,12 @@ trait DefaultTableFinderMethodsTrait
     }
 
     /**
-     * Return all rows if the current table
+     * Get all data from the database. For filtering, you can pass data via array `$where`
+     * @param array $where
      * @return array
+     * @throws InvalidDefinitionException
+     * @throws NotImplementedException
+     * @throws ReflectionException
      */
     public function getAll(array $where = []): array
     {
