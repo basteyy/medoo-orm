@@ -21,7 +21,7 @@
     "require": {
         "catfan/medoo": "^2.1",
         "basteyy/minimal-hash-wrapper": "^1.0",
-        "basteyy/various-php-snippets": "0.1.0",
+        "basteyy/various-php-snippets": "0.0.1",
         "symfony/console": "^6.0",
         "ext-mysqli": "*"
     }
