@@ -5,7 +5,7 @@ declare(strict_types=1);
  *
  * @version 1.0.0
  * @package https://github.com/basteyy/medoo-orm
- * @author Sebastian Eiweleit <sebastian@eiweleit.de>
+ * @author basteyy <sebastian@xzit.online>
  * @license Attribution-NonCommercial-ShareAlike 4.0 International
  */
 

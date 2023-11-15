@@ -4,7 +4,7 @@
  * The script is nonfree software.
  * The usage is allowed only under the conditions from the license.
  *
- * @author Sebastian Eiweleit <sebastian@eiweleit.de>
+ * @author basteyy <sebastian@xzit.online>
  * @website https://eiweleit.de
  * @website https://www.go-crazy.de
  * @website https://www.bikereisen.de
@@ -17,7 +17,7 @@ declare(strict_types=1);
  *
  * @version 1.0.0
  * @package https://github.com/basteyy/medoo-orm
- * @author Sebastian Eiweleit <sebastian@eiweleit.de>
+ * @author basteyy <sebastian@xzit.online>
  * @license Attribution-NonCommercial-ShareAlike 4.0 International
  *
  * For the full copyright and license information, please view the LICENSE
